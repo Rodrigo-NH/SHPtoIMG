@@ -17,3 +17,7 @@ At the present moment script creates a fixed set of zoom levels (from 24 to 18),
 - It will import zoom level for each feature from attribute field 'zoomL' (Text field) following the rules: If it's a plain number (e.g. "4") it will tag the particular feature to show only on that level. If it's prefixed with the letter "n" (e.g. "n4") it will tag the feature for all levels until defined level (from 0 to 4 in this example)
 ## MP files
 Script will not overwrite existing matching '.mp' files already present in the directory. You need to delete them manually if you want to reprocess the MP files. This is usefull as script will compile the IMG files without considering the shapefiles. For example if you need to make adjustments to MP files you can simply run the script again after changing the files.
+## Map processors support
+Support for available free map processors aren't great, unfortunately. There's basically two options: cgsmapper and MapTK. cgsmapper is not maintained anymore and the official page doesn't exist anymore, it's possible to download the last version though from the internet. MapTk looks great, does a good job and software is active (last version from 2021), but lacks a reliable webpage. The official webpage is http://maptk.dnsalias.com/ (self hosted) and not UP all the time.
+
+Cgsmapper page I tested and used to get cgsmapper: https://www.gpsfiledepot.com/tools/cgpsmapper.php
