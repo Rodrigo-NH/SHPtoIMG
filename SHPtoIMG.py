@@ -1,15 +1,17 @@
-import sys, random, os, argparse, pathlib
+import sys, random, os, pathlib
+from subprocess import Popen, PIPE, STDOUT
 from os import walk
 import json
 sys.path.append(r'C:\OSGeo4W\apps\Python39\Lib\site-packages')
-from osgeo import ogr, gdal, osr
+from osgeo import osr, ogr
 
 lineType = '0x0004'
 pointType = '0x0700'
 polygonType = '0x0028'
+simplify = True # map processors generalization are not goot, better to simplify before sending to processor. Set this
+                # value True to simplify geometries before map processor
 
-cgpsmapper = r'D:\MapEngine\cgpsmapper.exe'
-mapTK = r'D:\MapEngine\MapTk\MapTk.exe'
+mapEngine = r'D:\MapEngine\MapTk\MapTk.exe' # cgpsmapper or MapTk executable
 gmtPath = r'D:\MapEngine\gmt.exe' # Gmaptool executable http://www.gmaptool.eu/en/content/gmaptool
 
 def main():
@@ -28,7 +30,10 @@ def main():
             if sp[1].upper() == 'SHP' and len(sp) == 2:
                 shapefiles.append(sp[0])
     for each in shapefiles:
-        procshape(each, DIR_PATH)
+        setmapname = False
+        if len(shapefiles) == 1 and len(sys.argv) > 2:
+            setmapname = True
+        procshape(each, DIR_PATH, setmapname)
 
     if len(shapefiles) > 1:
         img = ''
@@ -45,12 +50,15 @@ def main():
         mapper = os.popen(command).read().splitlines()
         print(mapper)
 
-def procshape(shapefile, DIR_PATH):
+def procshape(shapefile, DIR_PATH, setmapname):
     if not os.path.isfile(DIR_PATH + '\\' + shapefile + '.mp'):
         hd = header()
         MAPid = str(random.randrange(10000000, 99999999))
         hd[3] = 'ID=' + MAPid + '\n'
-        hd[4] = 'Name=' + shapefile + '\n'
+        if setmapname:
+            hd[4] = 'Name=' + sys.argv[2] + '\n'
+        else:
+            hd[4] = 'Name=' + shapefile + '\n'
         MP = open(DIR_PATH + '\\' + shapefile + '.mp', 'w', encoding='latin2')
         for line in hd:
             MP.write(line)
@@ -61,11 +69,13 @@ def procshape(shapefile, DIR_PATH):
         targetprj = osr.SpatialReference()
         targetprj.ImportFromEPSG(4326)
         transform = osr.CoordinateTransformation(sourceprj, targetprj)
-        datapart = ''
         for feat in layer:
             geometry = feat.GetGeometryRef()
             geometry.Transform(transform)
-            dd = geometry.ExportToJson()
+            geom = feat.geometry()
+            if simplify:
+                geom = geom.Simplify(0.000003)
+            dd = geom.ExportToJson()
             jsondt = json.loads(dd)
             ftype = ftypes(jsondt['type'])[0]
             ftypef = ftypes(jsondt['type'])[1]
@@ -108,10 +118,17 @@ def procshape(shapefile, DIR_PATH):
             MP.write(datapart)
         MP.close()
 
-    # command = cgpsmapper + ' ' + DIR_PATH + '\\' + filename + '.mp'
-    command = mapTK + ' ' + DIR_PATH + '\\' + shapefile + '.mp' + ' ' + DIR_PATH + '\\' + shapefile + '.img'
+    me = mapEngine.split('\\')[-1].split('.')[0].upper()
+    if me == 'MAPTK':
+        ci = ' '
+    if me == 'CGPSMAPPER':
+        ci = ' -o '
+
+    command = mapEngine + ' ' + DIR_PATH + '\\' + shapefile + '.mp' + ci + DIR_PATH + '\\' + shapefile + '.img'
     print("Processing: " + shapefile + '.shp')
-    mapper = os.popen(command).read().splitlines()
+    mapper = Popen(command, stdout = PIPE, stderr = STDOUT, shell = True)
+    for line in mapper.stdout:
+        print(line.decode('ansi').strip('\n'))
 
 def header():
     hd = [
