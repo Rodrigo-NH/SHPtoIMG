@@ -13,6 +13,8 @@ The input folder for shapefiles to be used and other settings are in the script 
 
 Optionally script will perform splitting of input shapefiles (Usefull for big areas/big vertice count shapefiles). Also optionally will split geometries by vertices count threshold. Script will remove rings, but keeping general geometries aspect, by splitting geometries containing rings into separate geometries. This is necessary as garmin (or map processor for instance) doesn't know about rings. 
 
+Input shapefiles can be in any projection. It will reproject for the righ projection for maps (EPSG:4326)
+
 
 ## Labelling and styling
 If not specified, vectors will use the styles defined in script's 'lineType', 'pointType' and 'polygonType' variables. Styling and labelling can be imported from shapefile attributes table. For this, edit the corresponding variables poiting to correct attribute names contained in the shapefile.
