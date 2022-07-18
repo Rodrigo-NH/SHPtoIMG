@@ -50,14 +50,16 @@ def procshape(path):
             maprocs.append(rg)
 
     if proc:
-        inshp = Setsource(path, '', Action='open r')
+        inshp = Setsource(path, Action='open r')
+        inshp.getlayer(0)
         tempset = []
         grid = Layergrid(inshp.layer, splitshape[0], splitshape[1], Type='tilenumbers')
         gridcol = grid.getgrid()
         inlayer = inshp.layer
         proj = Transformation(inshp.srs, '4326')
         for t in range(0, len(gridcol)):
-            tempshp = Setsource(basename + '_' + grid.gridindex[t], '4326', Action='memory', Type=inshp.layertypestr)
+            tempshp = Setsource(basename + '_' + grid.gridindex[t], Action='memory')
+            tempshp.createlayer('', '4326', Type=inshp.layertypestr)
             fields = inshp.getattrtable()
             tempshp.setattrtable(fields)
             clipfeatures = layerclip(inlayer, gridcol[t])
@@ -87,8 +89,8 @@ def procshape(path):
                 MP.write(line)
             ft = []
             print("Splitting rings and vertices...")
-            backshape = Setsource(isubnshp.datasource.GetDescription() + '_P', isubnshp.srs, Action='memory',
-                                  Type=isubnshp.layertypestr)
+            backshape = Setsource(isubnshp.datasource.GetDescription() + '_P', Action='memory')
+            backshape.createlayer(isubnshp.datasource.GetDescription() + '_P', isubnshp.srs, Type=isubnshp.layertypestr)
             fl = isubnshp.getattrtable()
             backshape.setattrtable(fl)
             for t2 in range(0, isubnshp.featurecount()):
@@ -101,8 +103,8 @@ def procshape(path):
             outpathfile = os.path.join(outpath, isubnshp.datasource.GetDescription() + '_S' + '.shp')
             if keepshapes:
                 backshape.savefile(outpathfile)
-            simplified = Setsource(isubnshp.datasource.GetDescription() + '_SS', isubnshp.srs, Action='memory',
-                                  Type=isubnshp.layertypestr)
+            simplified = Setsource(isubnshp.datasource.GetDescription() + '_SS', Action='memory')
+            simplified.createlayer(isubnshp.datasource.GetDescription() + '_SS', isubnshp.srs, Type=isubnshp.layertypestr)
             simplifiedpath = os.path.join(outpath, isubnshp.datasource.GetDescription() + '_SS' + '.shp')
             simplified.setattrtable(fl)
             print("Constructing MP file...")
