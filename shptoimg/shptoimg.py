@@ -93,8 +93,9 @@ def procshape(path):
             backshape.createlayer(isubnshp.datasource.GetDescription() + '_P', isubnshp.srs, Type=isubnshp.layertypestr)
             fl = isubnshp.getattrtable()
             backshape.setattrtable(fl)
-            for t2 in range(0, isubnshp.featurecount()):
-                featset = splitrings(isubnshp.getfeature(t2))
+            it = isubnshp.iterfeatures(Action='reset')
+            for feature in it:
+                featset = splitrings(feature)
                 for eachf in featset:
                     featset3 = splitvertices(eachf, verticesthreshold)
                     for f in featset3:
